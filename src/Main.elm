@@ -1,6 +1,7 @@
-module Main exposing (Gender(..), Model, Msg(..), Plan(..), init, main, readPlan, showGender, showPlan, subscriptions, update, view)
+module Main exposing (Days(..), Model, Msg(..), Plan(..), init, main, readPlan, showDays, showPlan, subscriptions, update, view)
 
 import Browser
+import Browser.Navigation exposing (pushUrl)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -25,10 +26,11 @@ main =
 
 type alias Model =
     { firstName : String
+    , email : String
     , age : Maybe Int
-    , income : String
+    , phone : String
+    , days : Maybe Days
     , moreInfo : String
-    , gender : Maybe Gender
     , plan : Maybe Plan
     , subscribe : Bool
     }
@@ -39,10 +41,11 @@ init _ =
     let
         model =
             { firstName = ""
+            , email = ""
             , age = Nothing
-            , income = ""
+            , phone = ""
+            , days = Nothing
             , moreInfo = ""
-            , gender = Nothing
             , plan = Nothing
             , subscribe = False
             }
@@ -50,16 +53,21 @@ init _ =
     ( model, Cmd.none )
 
 
-type Gender
-    = Male
-    | Female
-    | Trans
+type Days
+    = Monday
+    | Tuesday
+    | Wednesday
+    | Thursday
+    | Friday
+    | Saturday
+    | Sunday
 
 
 type Plan
     = Plan1
     | Plan2
     | Plan3
+    | Plan4
 
 
 
@@ -68,10 +76,11 @@ type Plan
 
 type Msg
     = SetFirstName String
+    | SetEmail String
     | SetAge String
-    | SetIncome String
+    | SetPhone String
     | SetMoreInfo String
-    | SetGender Gender
+    | SetDays String
     | SetPlan String
     | ToggleSubscription
 
@@ -82,6 +91,9 @@ update msg model =
         SetFirstName s ->
             ( { model | firstName = s }, Cmd.none )
 
+        SetEmail s ->
+            ( { model | email = s }, Cmd.none )
+
         SetAge s ->
             case String.toInt s of
                 Nothing ->
@@ -90,14 +102,14 @@ update msg model =
                 Just n ->
                     ( { model | age = Just n }, Cmd.none )
 
-        SetIncome s ->
-            ( { model | income = s }, Cmd.none )
+        SetPhone s ->
+            ( { model | phone = s }, Cmd.none )
 
         SetMoreInfo s ->
             ( { model | moreInfo = s }, Cmd.none )
 
-        SetGender gender ->
-            ( { model | gender = Just gender }, Cmd.none )
+        SetDays days ->
+            ( { model | days = readDays days }, Cmd.none )
 
         SetPlan plan ->
             ( { model | plan = readPlan plan }, Cmd.none )
@@ -106,17 +118,57 @@ update msg model =
             ( { model | subscribe = not model.subscribe }, Cmd.none )
 
 
-showGender : Gender -> String
-showGender gender =
-    case gender of
-        Male ->
-            "Male"
+showDays : Days -> String
+showDays days =
+    case days of
+        Monday ->
+            "Monday"
 
-        Female ->
-            "Female"
+        Tuesday ->
+            "Tuesday"
 
-        Trans ->
-            "Trans"
+        Wednesday ->
+            "Wednesday"
+
+        Thursday ->
+            "Thursday"
+
+        Friday ->
+            "Friday"
+
+        Saturday ->
+            "Saturday"
+
+        Sunday ->
+            "Sunday"
+
+
+readDays : String -> Maybe Days
+readDays days =
+    case days of
+        "Monday" ->
+            Just Monday
+
+        "Tuesday" ->
+            Just Tuesday
+
+        "Wednesday" ->
+            Just Wednesday
+
+        "Thursday" ->
+            Just Thursday
+
+        "Friday" ->
+            Just Friday
+
+        "Saturday" ->
+            Just Saturday
+
+        "Sunday" ->
+            Just Sunday
+
+        _ ->
+            Nothing
 
 
 showPlan : Plan -> String
@@ -131,6 +183,9 @@ showPlan plan =
         Plan3 ->
             "3"
 
+        Plan4 ->
+            "4"
+
 
 readPlan : String -> Maybe Plan
 readPlan plan =
@@ -143,6 +198,9 @@ readPlan plan =
 
         "3" ->
             Just Plan3
+
+        "4" ->
+            Just Plan4
 
         _ ->
             Nothing
@@ -165,57 +223,92 @@ view : Model -> Html Msg
 view model =
     div
         [ style "text-align" "center"
-        , style "background-color" "#F0F0F0"
+        , style "background-color" "#FFFFFF"
         , style "max-width" "700px"
-        , style "margin" "auto"
-        , style "font-family" "Times New Roman"
+        , style "margin-left" "auto"
+        , style "margin-right" "auto"
+        , style "margin-top" "20px"
+        , style "margin-bottom" "20px"
+        , style "font-family" "Gurmukhi MT"
+        , style "box-shadow" "0 0 15px 4px rgba(0,0,0,0.06)"
+        , style "border-radius" "10px"
         ]
-        [ h1 [] [ text "Sign up" ]
-        , label [ style "font-weight" "bold" ] [ text "First name" ]
-        , div [ style "padding" "10px 0 10px 0" ] [ input ([ onInput SetFirstName ] ++ inputStyle) [] ]
-        , label [ style "font-weight" "bold" ] [ text "Age" ]
-        , div [ style "padding" "10px 0 10px 0" ] [ input ([ onInput SetAge ] ++ inputStyle) [] ]
-        , label [ style "font-weight" "bold" ] [ text "Gender" ]
-        , div
-            [ style "padding" "10px 0 20px 0" ]
-            [ input [ type_ "radio", name "gender", onClick (SetGender Male) ] []
-            , label [ style "margin" "5px 10px 5px 2px" ] [ text "Male" ]
-            , input [ type_ "radio", name "gender", onClick (SetGender Female) ] []
-            , label [ style "margin" "5px 10px 5px 2px" ] [ text "Female" ]
-            , input [ type_ "radio", name "gender", onClick (SetGender Trans) ] []
-            , label [ style "margin" "5px 10px 5px 2px" ] [ text "I prefer not to answer" ]
+        [ h1
+            [ style "padding" "25px 0 25px 0"
+            , style "box-shadow" "0 0 15px 4px rgba(0,0,0,0.06)"
             ]
-        , label [ style "font-weight" "bold" ] [ text "Income" ]
-        , div [ style "padding" "10px 0 10px 0" ] [ input ([ onInput SetIncome ] ++ inputStyle) [] ]
-        , label [ style "font-weight" "bold" ] [ text "More info" ]
-        , div [ style "padding" "10px 0 10px 0" ] [ input ([ onInput SetMoreInfo ] ++ inputStyle) [] ]
-        , label [ style "font-weight" "bold" ] [ text "Plan" ]
+            [ text "Volunteer Application Form" ]
+        , p [] [ text "Would you like to join us as a volunteer? Please complete the following form!" ]
+        , label [ style "font-weight" "bold" ] [ text "What's your full name?" ]
+        , div [ style "padding" "10px 0 10px 0" ] [ input ([ placeholder "Example Name", onInput SetFirstName ] ++ inputStyle) [] ]
+        , label [ style "font-weight" "bold" ] [ text "What's your email address?" ]
+        , div [ style "padding" "10px 0 10px 0" ] [ input ([ placeholder "example@email.com", onInput SetEmail ] ++ inputStyle) [] ]
+        , label [ style "font-weight" "bold" ] [ text "What's your age?" ]
+        , p
+            [ style "margin" "auto"
+            , style "font-size" "12px"
+            ]
+            [ text "(Volunteers must be at least 18 years old)" ]
+        , div [ style "padding" "10px 0 10px 0" ] [ input ([ type_ "date", onInput SetAge ] ++ inputStyle) [] ]
+        , label [ style "font-weight" "bold" ] [ text "What's your phone number?" ]
+        , div [ style "padding" "10px 0 10px 0" ] [ input ([ placeholder "+(xxx) 111-222-333", onInput SetPhone ] ++ inputStyle) [] ]
+        , label [ style "font-weight" "bold" ] [ text "On what days are you available?" ]
+        , div
+            [ style "padding" "10px 0 20px 0"
+            , style "max-width" "500px"
+            , style "text-align" "center"
+            , style "margin" "auto"
+            ]
+            [ input [ id "monday", type_ "checkbox", onClick (SetDays (showDays Monday)) ] []
+            , label ([ for "monday" ] ++ daysStyle) [ text "Monday" ]
+            , input [ id "tuesday", type_ "checkbox", onClick (SetDays (showDays Tuesday)) ] []
+            , label ([ for "tuesday" ] ++ daysStyle) [ text "Tuesday" ]
+            , br [] []
+            , input [ id "wednesday", type_ "checkbox", onClick (SetDays (showDays Wednesday)) ] []
+            , label ([ for "wednesday" ] ++ daysStyle) [ text "Wednesday" ]
+            , input [ id "thursday", type_ "checkbox", onClick (SetDays (showDays Thursday)) ] []
+            , label ([ for "thursday" ] ++ daysStyle) [ text "Thursday" ]
+            , br [] []
+            , input [ id "friday", type_ "checkbox", onClick (SetDays (showDays Friday)) ] []
+            , label ([ for "friday" ] ++ daysStyle) [ text "Friday" ]
+            , input [ id "saturday", type_ "checkbox", onClick (SetDays (showDays Saturday)) ] []
+            , label ([ for "saturday" ] ++ daysStyle) [ text "Saturday" ]
+            , br [] []
+            , input [ id "sunday", type_ "checkbox", onClick (SetDays (showDays Sunday)) ] []
+            , label ([ for "sunday" ] ++ daysStyle) [ text "Sunday" ]
+            ]
+        , label [ style "font-weight" "bold" ] [ text "Which time works best for you?" ]
         , div
             [ style "padding" "10px 0 10px 0"
             ]
-            [ input [ id "plan1", type_ "radio", name "plan", onClick (SetPlan (showPlan Plan1)) ] []
-            , label ([ for "plan1" ] ++ planStyle) [ text "Select Plan 1" ]
-            , input [ id "plan2", type_ "radio", name "plan", onClick (SetPlan (showPlan Plan2)) ] []
-            , label ([ for "plan2" ] ++ planStyle) [ text "Select Plan 2" ]
-            , input [ id "plan3", type_ "radio", name "plan", onClick (SetPlan (showPlan Plan3)) ] []
-            , label ([ for "plan3" ] ++ planStyle) [ text "Select Plan 3" ]
+            [ input [ id "plan1", type_ "checkbox", name "plan", onClick (SetPlan (showPlan Plan1)) ] []
+            , label ([ for "plan1" ] ++ planStyle) [ text "10am to 1pm" ]
+            , br [] []
+            , input [ id "plan2", type_ "checkbox", name "plan", onClick (SetPlan (showPlan Plan2)) ] []
+            , label ([ for "plan2" ] ++ planStyle) [ text "1pm to 4pm" ]
+            , br [] []
+            , input [ id "plan3", type_ "checkbox", name "plan", onClick (SetPlan (showPlan Plan3)) ] []
+            , label ([ for "plan3" ] ++ planStyle) [ text "4pm to 7pm" ]
+            , br [] []
+            , input [ id "plan4", type_ "checkbox", name "plan", onClick (SetPlan (showPlan Plan4)) ] []
+            , label ([ for "plan4" ] ++ planStyle) [ text "7pm to 10pm" ]
             ]
-        , div [ style "padding" "10px 0 10px 0" ]
+        , label [ style "font-weight" "bold" ] [ text "More info" ]
+        , div [ style "padding" "10px 0 10px 0" ] [ textarea ([ placeholder "Tell us more about yourself!", onInput SetMoreInfo ] ++ inputStyle) [] ]
+        , div [ style "padding" "10px 0 10px 0px" ]
             [ input [ type_ "checkbox", name "subscribe", onClick ToggleSubscription ] []
-            , label [] [ text "Subscribe to Newsletter" ]
+            , label [ style "margin" "0 20px 10px 5px" ] [ text "Confirm that all the infromation given above are true and complete." ]
             ]
         , div [ style "padding" "10px 0 10px 0" ]
             [ button
-                [ style "width" "70px"
-                , style "padding" "10px 0 10px 0"
-                , style "background-color" "white"
-                , style "font-family" "Times New Roman"
+                [ style "padding" "10px"
+                , style "background" "white"
+                , style "border" "none"
+                , style "box-shadow" "0 6px 20px 0 rgba(0,0,0,0.19), 0 6px 20px 0 rgba(0,0,0,0.19)"
+                , style "font-family" "Gurmukhi MT"
+                , style "width" "90px"
+                , style "font-size" "14px"
                 , style "font-weight" "bold"
-                , style "border-radius" "5px"
-                , style "font-size" "15px"
-                , style "border-style" "solid"
-                , style "border-color" "black"
-                , style "border-width" "thin"
                 ]
                 [ text "Send" ]
             ]
@@ -226,50 +319,72 @@ inputStyle : List (Attribute msg)
 inputStyle =
     [ style "display" "block"
     , style "width" "240px"
-    , style "text-align" "center"
+    , style "text-align" "left"
     , style "margin" "auto"
     , style "height" "25px"
+    , style "background-color" "#FFFFFF"
+    , style "border-top-width" "0"
+    , style "border-left-width" "0"
+    , style "border-right-width" "0"
+    , style "border-bottom-width" "1px"
+    , style "border-color" "black"
     ]
 
 
 planStyle : List (Attribute msg)
 planStyle =
-    [ style "border-radius" "5px"
-    , style "background-color" "white"
-    , style "display" "-webkit-inline-box"
-    , style "padding" "30px 50px"
+    [ style "margin" "0 20px 10px 5px"
+    , style "box-shadow" "0 0 15px 4px rgba(0,0,0,0.06)"
+    , style "padding" "10px"
     , style "text-align" "-webkit-center"
-    , style "margin" "5px"
+    , style "display" "-webkit-inline-box"
+    , style "font-size" "14px"
+    , style "width" "90px"
+    , style "height" "20px"
+    ]
+
+
+daysStyle : List (Attribute msg)
+daysStyle =
+    [ style "margin" "0 20px 10px 5px"
+    , style "box-shadow" "0 0 15px 4px rgba(0,0,0,0.06)"
+    , style "padding" "10px"
+    , style "text-align" "-webkit-center"
+    , style "width" "70px"
+    , style "height" "20px"
+    , style "font-size" "14px"
+    , style "display" "-webkit-inline-box"
     ]
 
 
 
 {--, hr [] []
-        , p [] [ text ("First name is: " ++ model.firstName) ]
+        , p [] [ text ("Full name is: " ++ model.fullName) ]
+        , p [] [ text ("Email address is: " ++ model.email) ]
         , case model.age of
             Just age ->
                 p [] [ text ("Age is: " ++ String.fromInt age) ]
 
             Nothing ->
                 p [] [ text "User has not provided the age" ]
-        , p [] [ text ("Information about income: " ++ model.income) ]
-        , p [] [ text ("More info: " ++ model.moreInfo) ]
-        , case model.gender of
-            Just gender ->
-                p [] [ text ("Gender: " ++ showGender gender) ]
+        , p [] [ text ("Phone number: " ++ model.phone) ]
+        , case model.days of
+            Just days ->
+                p [] [ text ("Days availability: " ++ showDays days) ]
 
             Nothing ->
-                p [] [ text "User has not provided the gender" ]
+                p [] [ text "User has not provided the days availability" ]
         , case model.plan of
             Just plan ->
-                p [] [ text ("Plan: " ++ showPlan plan) ]
+                p [] [ text ("Time availability: " ++ showPlan plan) ]
 
             Nothing ->
-                p [] [ text "User has not provided the plan" ]
+                p [] [ text "User has not provided the time availability" ]
+        , p [] [ text ("More info: " ++ model.moreInfo) ]
         , if model.subscribe then
-            p [] [ text "User is subscribed" ]
+            p [] [ text "User confirmed." ]
 
           else
-            p [] [ text "User has not provided subscription" ]
+            p [] [ text "User didn't confrim." ]
         ]
 --}
