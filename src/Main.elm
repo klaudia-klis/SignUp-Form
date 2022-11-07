@@ -1,7 +1,6 @@
 module Main exposing (Days(..), Model, Msg(..), Plan(..), init, main, readPlan, showDays, showPlan, subscriptions, update, view)
 
 import Browser
-import Browser.Navigation exposing (pushUrl)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
